@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動化裝潢報價系統</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e67e22;
+            --light-gray: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--light-gray);
+            border-radius: 5px;
+            border-left: 5px solid var(--accent-color);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        /* 報價單樣式 */
+        #quotationResult {
+            display: none; /* 預設隱藏 */
+            margin-top: 40px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: var(--accent-color) !important;
+            color: white;
+        }
+        .sub-total-row {
+            font-weight: bold;
+            background-color: #e9ecef !important;
+            color: var(--primary-color);
+        }
+        .print-btn {
+            background-color: #27ae60;
+            margin-top: 20px;
+            display: none; /* 預設隱藏 */
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #quotationResult, #quotationResult * {
+                visibility: visible;
+            }
+            #quotationResult {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="no-print">
+        <h1>裝潢需求問卷 (丙方填寫)</h1>
+        <p>請輸入您的裝潢需求，系統將自動計算預估報價。</p>
+
+        <div class="section">
+            <h2>1. 天花板工程</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>天花板類型</label>
+                    <select id="ceilingType">
+                        <option value="flat">平釘天花板 (矽酸鈣板)</option>
+                        <option value="styled">造型天花板 (立體/圓弧)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>施作坪數 (坪)</label>
+                    <input type="number" id="ceilingArea" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>間接照明層板 (台尺)</label>
+                    <input type="number" id="indirectLight" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>開孔數量 (燈具/維修孔)</label>
+                    <input type="number" id="holes" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. 櫃體工程 (木工/系統櫃)</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>櫃體工法</label>
+                    <select id="cabinetMethod">
+                        <option value="system">系統櫃 (System)</option>
+                        <option value="wood">木作櫃 (Woodwork)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>五金/板材等級</label>
+                    <select id="materialLevel">
+                        <option value="normal">普通 (標準板材/國產五金)</option>
+                        <option value="premium">高級 (進口板材/緩衝五金 +15%)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>矮櫃長度 (H≤120cm) (台尺)</label>
+                    <input type="number" id="lowCabinet" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>高櫃長度 (H>120cm) (台尺)</label>
+                    <input type="number" id="highCabinet" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>抽屜數量 (組)</label>
+                    <input type="number" id="drawers" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. 隔間與拆除雜項</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>木作隔間牆 (雙面) (坪)</label>
+                    <input type="number" id="partitionArea" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>舊裝潢拆除 (坪)</label>
+                    <input type="number" id="demoArea" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>廢棄物清運 (趟)</label>
+                    <input type="number" id="trashTrips" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <button onclick="calculateQuote()">產生報價單 (給乙方)</button>
+    </div>
+
+    <div id="quotationResult">
+        <h1>裝潢工程估價單</h1>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <div>
+                <strong>客戶 (丙方)：</strong><span id="clientName">自填</span><br>
+                <strong>日期：</strong><span id="currentDate"></span>
+            </div>
+            <div>
+                <strong>承攬 (乙方)：</strong>裝潢設計公司<br>
+                <strong>單號：</strong><span id="quoteId"></span>
+            </div>
+        </div>
+
+        <table id="quoteTable">
+            <thead>
+                <tr>
+                    <th width="15%">工種</th>
+                    <th width="25%">工項</th>
+                    <th width="10%">數量</th>
+                    <th width="10%">單位</th>
+                    <th width="15%">單價 (NTD)</th>
+                    <th width="15%">小計 (NTD)</th>
+                    <th width="10%">備註</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <button class="print-btn no-print" onclick="window.print()">列印 / 存為 PDF</button>
+    </div>
+</div>
+
+<script>
+    // --- 資料庫 (Database) ---
+    // 基礎市價設定 (單位: NTD)
+    const DB_PRICES = {
+        ceiling: {
+            flat: 4000,    // 平釘
+            styled: 6000,  // 造型
+            light: 450,    // 層板 (尺)
+            hole: 150      // 開孔 (個)
+        },
+        cabinet: {
+            system: {
+                low: 5000,  // 系統矮櫃
+                high: 6500  // 系統高櫃
+            },
+            wood: {
+                low: 10000, // 木作矮櫃
+                high: 15000 // 木作高櫃
+            },
+            drawer: {
+                normal: 2500,
+                premium: 3200 // 含緩衝
+            },
+            premiumMultiplier: 1.15 // 高級材料加成 15%
+        },
+        partition: 5500,   // 隔間牆 (坪)
+        demo: 1300,        // 拆除 (坪)
+        trash: 6000        // 清運 (趟)
+    };
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function calculateQuote() {
+        // 1. 獲取輸入資料
+        const inputs = {
+            ceilingType: document.getElementById('ceilingType').value,
+            ceilingArea: parseFloat(document.getElementById('ceilingArea').value) || 0,
+            indirectLight: parseFloat(document.getElementById('indirectLight').value) || 0,
+            holes: parseFloat(document.getElementById('holes').value) || 0,
+            
+            cabinetMethod: document.getElementById('cabinetMethod').value,
+            materialLevel: document.getElementById('materialLevel').value,
+            lowCabinet: parseFloat(document.getElementById('lowCabinet').value) || 0,
+            highCabinet: parseFloat(document.getElementById('highCabinet').value) || 0,
+            drawers: parseFloat(document.getElementById('drawers').value) || 0,
+            
+            partitionArea: parseFloat(document.getElementById('partitionArea').value) || 0,
+            demoArea: parseFloat(document.getElementById('demoArea').value) || 0,
+            trashTrips: parseFloat(document.getElementById('trashTrips').value) || 0
+        };
+
+        // 2. 準備報價單資料陣列
+        let items = [];
+        let totalAmount = 0;
+
+        // --- A. 天花板計算 ---
+        let ceilingUnitPrice = inputs.ceilingType === 'flat' ? DB_PRICES.ceiling.flat : DB_PRICES.ceiling.styled;
+        let ceilingName = inputs.ceilingType === 'flat' ? '平釘天花板 (矽酸鈣板)' : '造型天花板';
+        
+        if (inputs.ceilingArea > 0) {
+            items.push({
+                cat: '木作工程', name: ceilingName, qty: inputs.ceilingArea, unit: '坪', 
+                price: ceilingUnitPrice, total: inputs.ceilingArea * ceilingUnitPrice, note: '連工帶料'
+            });
+        }
+        if (inputs.indirectLight > 0) {
+            items.push({
+                cat: '木作工程', name: '間接照明層板', qty: inputs.indirectLight, unit: '尺', 
+                price: DB_PRICES.ceiling.light, total: inputs.indirectLight * DB_PRICES.ceiling.light, note: ''
+            });
+        }
+        if (inputs.holes > 0) {
+            items.push({
+                cat: '木作工程', name: '燈具/維修孔開孔', qty: inputs.holes, unit: '個', 
+                price: DB_PRICES.ceiling.hole, total: inputs.holes * DB_PRICES.ceiling.hole, note: ''
+            });
+        }
+
+        // --- B. 櫃體計算 ---
+        // 判斷單價與加成
+        let isPremium = inputs.materialLevel === 'premium';
+        let basePrices = inputs.cabinetMethod === 'system' ? DB_PRICES.cabinet.system : DB_PRICES.cabinet.wood;
+        let multiplier = isPremium ? DB_PRICES.cabinet.premiumMultiplier : 1.0;
+        let drawerPrice = isPremium ? DB_PRICES.cabinet.drawer.premium : DB_PRICES.cabinet.drawer.normal;
+        let catName = inputs.cabinetMethod === 'system' ? '系統櫃工程' : '木作櫃體';
+        let matNote = isPremium ? '高級 (含緩衝/特殊板)' : '標準 (國產)';
+
+        // 計算實際單價 (四捨五入至十位)
+        let priceLow = Math.round((basePrices.low * multiplier) / 10) * 10;
+        let priceHigh = Math.round((basePrices.high * multiplier) / 10) * 10;
+
+        if (inputs.lowCabinet > 0) {
+            items.push({
+                cat: catName, name: '矮櫃 (H≤120cm)', qty: inputs.lowCabinet, unit: '尺', 
+                price: priceLow, total: inputs.lowCabinet * priceLow, note: matNote
+            });
+        }
+        if (inputs.highCabinet > 0) {
+            items.push({
+                cat: catName, name: '高櫃 (H>120cm)', qty: inputs.highCabinet, unit: '尺', 
+                price: priceHigh, total: inputs.highCabinet * priceHigh, note: matNote
+            });
+        }
+        if (inputs.drawers > 0) {
+            items.push({
+                cat: catName, name: '抽屜組', qty: inputs.drawers, unit: '組', 
+                price: drawerPrice, total: inputs.drawers * drawerPrice, note: isPremium ? '緩衝滑軌' : '一般滑軌'
+            });
+        }
+
+        // --- C. 隔間與雜項 ---
+        if (inputs.partitionArea > 0) {
+            items.push({
+                cat: '木作工程', name: '雙面隔間牆', qty: inputs.partitionArea, unit: '坪', 
+                price: DB_PRICES.partition, total: inputs.partitionArea * DB_PRICES.partition, note: '含骨架/封板'
+            });
+        }
+        if (inputs.demoArea > 0) {
+            items.push({
+                cat: '拆除工程', name: '舊裝潢拆除', qty: inputs.demoArea, unit: '坪', 
+                price: DB_PRICES.demo, total: inputs.demoArea * DB_PRICES.demo, note: '不含清運'
+            });
+        }
+        if (inputs.trashTrips > 0) {
+            items.push({
+                cat: '清潔工程', name: '廢棄物清運', qty: inputs.trashTrips, unit: '趟', 
+                price: DB_PRICES.trash, total: inputs.trashTrips * DB_PRICES.trash, note: '標準車次'
+            });
+        }
+
+        // 3. 渲染 HTML 表格
+        const tbody = document.querySelector('#quoteTable tbody');
+        tbody.innerHTML = '';
+        
+        let currentCat = '';
+        let subTotal = 0;
+
+        // 排序：確保相同工種在一起
+        items.sort((a, b) => a.cat.localeCompare(b.cat));
+
+        items.forEach((item, index) => {
+            // 檢查是否需要插入工種小計 (當工種改變 或 最後一項時)
+            if (currentCat !== '' && item.cat !== currentCat) {
+                 tbody.innerHTML += `
+                    <tr class="sub-total-row">
+                        <td colspan="5" style="text-align: right;">${currentCat} 小計</td>
+                        <td colspan="2">NT$ ${formatNumber(subTotal)}</td>
+                    </tr>
+                `;
+                subTotal = 0;
+            }
+
+            currentCat = item.cat;
+            subTotal += item.total;
+            totalAmount += item.total;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.cat}</td>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${item.unit}</td>
+                    <td>${formatNumber(item.price)}</td>
+                    <td>${formatNumber(item.total)}</td>
+                    <td>${item.note}</td>
+                </tr>
+            `;
+
+            // 處理最後一項的小計
+            if (index === items.length - 1) {
+                tbody.innerHTML += `
+                    <tr class="sub-total-row">
+                        <td colspan="5" style="text-align: right;">${currentCat} 小計</td>
+                        <td colspan="2">NT$ ${formatNumber(subTotal)}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        // 總計行
+        let tax = Math.round(totalAmount * 0.05);
+        let grandTotal = totalAmount + tax;
+
+        tbody.innerHTML += `
+            <tr><td colspan="7" style="border:none; height:20px;"></td></tr>
+            <tr>
+                <td colspan="5" style="text-align: right;"><strong>合計 (未稅)</strong></td>
+                <td colspan="2"><strong>NT$ ${formatNumber(totalAmount)}</strong></td>
+            </tr>
+            <tr>
+                <td colspan="5" style="text-align: right;">營業稅 (5%)</td>
+                <td colspan="2">NT$ ${formatNumber(tax)}</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="5" style="text-align: right;">總計金額</td>
+                <td colspan="2">NT$ ${formatNumber(grandTotal)}</td>
+            </tr>
+        `;
+
+        // 顯示報價單區域
+        document.getElementById('quotationResult').style.display = 'block';
+        document.querySelector('.print-btn').style.display = 'block';
+        
+        // 填寫基本資料
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
+        document.getElementById('quoteId').innerText = 'Q-' + Date.now().toString().slice(-6);
+        
+        // 捲動到底部
+        document.getElementById('quotationResult').scrollIntoView({behavior: 'smooth'});
+    }
+</script>
+
+</body>
+</html>
