@@ -3,134 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自動化裝潢報價系統</title>
+    <title>工程請款單系統</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #e67e22;
-            --light-gray: #f8f9fa;
-            --border-color: #dee2e6;
+            --primary: #27ae60;
+            --primary-hover: #219150;
+            --bg: #f4f7f6;
+            --text: #333;
+            --border: #ddd;
         }
-        body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif;
-            line-height: 1.6;
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
             margin: 0;
             padding: 20px;
-            color: #333;
-            background-color: #f4f4f4;
+            color: var(--text);
+            line-height: 1.5;
         }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+
+        .container { 
+            width: 100%;
+            max-width: 800px; /* 電腦版最大寬度 */
+            margin: 0 auto; 
+            background: white; 
+            padding: 40px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
             border-radius: 8px;
+            box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
         }
-        h1, h2 {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
+
+        /* --- 輸入區塊 (操作介面) --- */
+        .no-print { 
+            background: #eef2f3; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
         }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: var(--light-gray);
-            border-radius: 5px;
-            border-left: 5px solid var(--accent-color);
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .form-group {
-            margin-bottom: 10px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        input[type="number"], select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background-color: var(--secondary-color);
-        }
+
+        h1, h2 { text-align: center; color: #2c3e50; margin-top: 0; }
         
-        /* 報價單樣式 */
-        #quotationResult {
-            display: none; /* 預設隱藏 */
-            margin-top: 40px;
+        .input-group { 
+            margin-bottom: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+
+        label { 
+            width: 100px; 
+            font-weight: bold; 
+            flex-shrink: 0; /* 防止標籤被壓縮 */
+        }
+
+        input, select { 
+            flex: 1; 
+            padding: 10px; 
+            border: 1px solid var(--border); 
+            border-radius: 4px; 
+            font-size: 16px; /* 防止 iOS 自動縮放 */
+        }
+
+        /* 按鈕樣式 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .total-row {
+
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px; 
             font-weight: bold;
-            background-color: var(--accent-color) !important;
-            color: white;
+            border-radius: 4px; 
+            transition: background 0.2s;
         }
-        .sub-total-row {
-            font-weight: bold;
-            background-color: #e9ecef !important;
-            color: var(--primary-color);
+
+        button:hover { background: var(--primary-hover); }
+        
+        button.print-btn { background: #34495e; }
+        button.print-btn:hover { background: #2c3e50; }
+
+        /* --- 輸出區塊 (請款單預覽) --- */
+        #invoiceArea {
+            border-top: 2px dashed #ccc;
+            padding-top: 20px;
         }
-        .print-btn {
-            background-color: #27ae60;
-            margin-top: 20px;
-            display: none; /* 預設隱藏 */
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* 允許換行 */
+            gap: 20px;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 12px; text-align: left; }
+        th { background: #f0f0f0; text-align: center; white-space: nowrap; }
+        
+        .text-right { text-align: right; }
+        
+        .bank-info {
+            margin-top: 30px;
+            padding: 15px;
+            border: 2px dashed #333;
+            background: #fffdf0;
+        }
+
+        .footer { 
+            margin-top: 50px; 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 20px;
         }
         
+        .sign-box {
+            border-top: 1px solid #000;
+            width: 40%;
+            padding-top: 10px;
+            text-align: center;
+        }
+
+        /* --- 手機版 RWD 調整 (螢幕小於 600px 時觸發) --- */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 20px; }
+            
+            /* 輸入區變為垂直排列 */
+            .input-group { 
+                flex-direction: column; 
+                align-items: flex-start; 
+                gap: 5px;
+            }
+            label { width: 100%; }
+            input, select { width: 100%; box-sizing: border-box; }
+
+            /* 請款單頭部垂直排列 */
+            .invoice-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .invoice-header div { text-align: left !important; }
+
+            /* 表格調整字體以適應窄螢幕 */
+            th, td { padding: 8px; font-size: 14px; }
+            
+            /* 簽名欄位堆疊 */
+            .footer { flex-direction: column; gap: 40px; }
+            .sign-box { width: 100%; text-align: left; }
+        }
+
+        /* --- 列印專用樣式 (A4 格式) --- */
         @media print {
-            body * {
-                visibility: hidden;
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .container { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                max-width: 100%; 
+                padding: 0; 
+                border: none;
             }
-            #quotationResult, #quotationResult * {
-                visibility: visible;
-            }
-            #quotationResult {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                display: block !important;
-            }
-            .no-print {
-                display: none;
-            }
+            #invoiceArea { border-top: none; padding-top: 0; }
+            
+            /* 強制列印時使用橫向排列，即使是在手機上按列印 */
+            .invoice-header { flex-direction: row !important; }
+            .invoice-header div { width: 50%; }
+            .invoice-header div:last-child { text-align: right !important; }
+            
+            .footer { flex-direction: row !important; margin-top: 80px; }
+            .sign-box { width: 40%; text-align: center !important; }
+            
+            .bank-info { background: none; border: 2px solid #000; }
         }
     </style>
 </head>
@@ -138,334 +190,132 @@
 
 <div class="container">
     <div class="no-print">
-        <h1>裝潢需求問卷 (丙方填寫)</h1>
-        <p>請輸入您的裝潢需求，系統將自動計算預估報價。</p>
-
-        <div class="section">
-            <h2>1. 天花板工程</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>天花板類型</label>
-                    <select id="ceilingType">
-                        <option value="flat">平釘天花板 (矽酸鈣板)</option>
-                        <option value="styled">造型天花板 (立體/圓弧)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>施作坪數 (坪)</label>
-                    <input type="number" id="ceilingArea" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>間接照明層板 (台尺)</label>
-                    <input type="number" id="indirectLight" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>開孔數量 (燈具/維修孔)</label>
-                    <input type="number" id="holes" min="0" value="0">
-                </div>
-            </div>
+        <h2>🛠️ 建立請款單</h2>
+        <div class="input-group">
+            <label>客戶名稱</label>
+            <input type="text" id="client" placeholder="例：陳先生">
         </div>
-
-        <div class="section">
-            <h2>2. 櫃體工程 (木工/系統櫃)</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>櫃體工法</label>
-                    <select id="cabinetMethod">
-                        <option value="system">系統櫃 (System)</option>
-                        <option value="wood">木作櫃 (Woodwork)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>五金/板材等級</label>
-                    <select id="materialLevel">
-                        <option value="normal">普通 (標準板材/國產五金)</option>
-                        <option value="premium">高級 (進口板材/緩衝五金 +15%)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>矮櫃長度 (H≤120cm) (台尺)</label>
-                    <input type="number" id="lowCabinet" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>高櫃長度 (H>120cm) (台尺)</label>
-                    <input type="number" id="highCabinet" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>抽屜數量 (組)</label>
-                    <input type="number" id="drawers" min="0" value="0">
-                </div>
-            </div>
+        <div class="input-group">
+            <label>工程地點</label>
+            <input type="text" id="location" placeholder="例：板橋文化路案">
         </div>
-
-        <div class="section">
-            <h2>3. 隔間與拆除雜項</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>木作隔間牆 (雙面) (坪)</label>
-                    <input type="number" id="partitionArea" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>舊裝潢拆除 (坪)</label>
-                    <input type="number" id="demoArea" min="0" value="0">
-                </div>
-                <div class="form-group">
-                    <label>廢棄物清運 (趟)</label>
-                    <input type="number" id="trashTrips" min="0" value="0">
-                </div>
-            </div>
+        <div class="input-group">
+            <label>工程總價</label>
+            <input type="number" id="totalPrice" placeholder="輸入總報價金額">
         </div>
-
-        <button onclick="calculateQuote()">產生報價單 (給乙方)</button>
+        <div class="input-group">
+            <label>請款期數</label>
+            <select id="phase" onchange="updateRatio()">
+                <option value="1">第一期：簽約訂金 (30%)</option>
+                <option value="2">第二期：開工進場 (30%)</option>
+                <option value="3">第三期：木作完工 (30%)</option>
+                <option value="4">第四期：驗收尾款 (10%)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>本期比例 %</label>
+            <input type="number" id="ratio" value="30">
+        </div>
+        
+        <div class="btn-group">
+            <button onclick="generateInvoice()">生成請款單</button>
+            <button class="print-btn" onclick="window.print()">列印 / 存 PDF</button>
+        </div>
     </div>
 
-    <div id="quotationResult">
-        <h1>裝潢工程估價單</h1>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+    <div id="invoiceArea">
+        <h1>工程請款單</h1>
+        <div class="invoice-header">
             <div>
-                <strong>客戶 (丙方)：</strong><span id="clientName">自填</span><br>
-                <strong>日期：</strong><span id="currentDate"></span>
+                <p><strong>客戶名稱：</strong><span id="outClient"></span></p>
+                <p><strong>工程地點：</strong><span id="outLoc"></span></p>
             </div>
-            <div>
-                <strong>承攬 (乙方)：</strong>裝潢設計公司<br>
-                <strong>單號：</strong><span id="quoteId"></span>
+            <div style="text-align: right;">
+                <p><strong>請款日期：</strong><span id="outDate"></span></p>
+                <p><strong>單據編號：</strong><span id="outId"></span></p>
             </div>
         </div>
 
-        <table id="quoteTable">
+        <table>
             <thead>
                 <tr>
-                    <th width="15%">工種</th>
-                    <th width="25%">工項</th>
-                    <th width="10%">數量</th>
-                    <th width="10%">單位</th>
-                    <th width="15%">單價 (NTD)</th>
-                    <th width="15%">小計 (NTD)</th>
-                    <th width="10%">備註</th>
+                    <th>項目說明</th>
+                    <th width="25%">金額 (NTD)</th>
+                    <th width="20%">備註</th>
                 </tr>
             </thead>
             <tbody>
-                </tbody>
+                <tr>
+                    <td>
+                        <strong>工程總價</strong>
+                    </td>
+                    <td class="text-right" id="outTotal">0</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>本次請款：<span id="outPhaseName">簽約訂金</span></strong>
+                        <br><span style="font-size:0.9em; color:#666;">(依照工程合約比例 <span id="outRatio">30</span>% 計算)</span>
+                    </td>
+                    <td class="text-right" id="outAmount" style="font-weight:bold; font-size: 1.1em;">0</td>
+                    <td>含稅</td>
+                </tr>
+            </tbody>
         </table>
 
-        <button class="print-btn no-print" onclick="window.print()">列印 / 存為 PDF</button>
+        <div class="bank-info">
+            <h3 style="margin-top: 0;">匯款資訊</h3>
+            <p>銀行代碼：<strong>000 (XX銀行)</strong></p>
+            <p>銀行帳號：<strong>1234-5678-9012</strong></p>
+            <p>戶名：<strong>(您的公司名稱)</strong></p>
+        </div>
+
+        <div class="footer">
+            <div class="sign-box">經辦人</div>
+            <div class="sign-box">客戶簽收</div>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- 資料庫 (Database) ---
-    // 基礎市價設定 (單位: NTD)
-    const DB_PRICES = {
-        ceiling: {
-            flat: 4000,    // 平釘
-            styled: 6000,  // 造型
-            light: 450,    // 層板 (尺)
-            hole: 150      // 開孔 (個)
-        },
-        cabinet: {
-            system: {
-                low: 5000,  // 系統矮櫃
-                high: 6500  // 系統高櫃
-            },
-            wood: {
-                low: 10000, // 木作矮櫃
-                high: 15000 // 木作高櫃
-            },
-            drawer: {
-                normal: 2500,
-                premium: 3200 // 含緩衝
-            },
-            premiumMultiplier: 1.15 // 高級材料加成 15%
-        },
-        partition: 5500,   // 隔間牆 (坪)
-        demo: 1300,        // 拆除 (坪)
-        trash: 6000        // 清運 (趟)
-    };
-
-    function formatNumber(num) {
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    function updateRatio() {
+        const phase = document.getElementById('phase').value;
+        const ratios = {1: 30, 2: 30, 3: 30, 4: 10};
+        document.getElementById('ratio').value = ratios[phase];
     }
 
-    function calculateQuote() {
-        // 1. 獲取輸入資料
-        const inputs = {
-            ceilingType: document.getElementById('ceilingType').value,
-            ceilingArea: parseFloat(document.getElementById('ceilingArea').value) || 0,
-            indirectLight: parseFloat(document.getElementById('indirectLight').value) || 0,
-            holes: parseFloat(document.getElementById('holes').value) || 0,
-            
-            cabinetMethod: document.getElementById('cabinetMethod').value,
-            materialLevel: document.getElementById('materialLevel').value,
-            lowCabinet: parseFloat(document.getElementById('lowCabinet').value) || 0,
-            highCabinet: parseFloat(document.getElementById('highCabinet').value) || 0,
-            drawers: parseFloat(document.getElementById('drawers').value) || 0,
-            
-            partitionArea: parseFloat(document.getElementById('partitionArea').value) || 0,
-            demoArea: parseFloat(document.getElementById('demoArea').value) || 0,
-            trashTrips: parseFloat(document.getElementById('trashTrips').value) || 0
-        };
-
-        // 2. 準備報價單資料陣列
-        let items = [];
-        let totalAmount = 0;
-
-        // --- A. 天花板計算 ---
-        let ceilingUnitPrice = inputs.ceilingType === 'flat' ? DB_PRICES.ceiling.flat : DB_PRICES.ceiling.styled;
-        let ceilingName = inputs.ceilingType === 'flat' ? '平釘天花板 (矽酸鈣板)' : '造型天花板';
-        
-        if (inputs.ceilingArea > 0) {
-            items.push({
-                cat: '木作工程', name: ceilingName, qty: inputs.ceilingArea, unit: '坪', 
-                price: ceilingUnitPrice, total: inputs.ceilingArea * ceilingUnitPrice, note: '連工帶料'
-            });
-        }
-        if (inputs.indirectLight > 0) {
-            items.push({
-                cat: '木作工程', name: '間接照明層板', qty: inputs.indirectLight, unit: '尺', 
-                price: DB_PRICES.ceiling.light, total: inputs.indirectLight * DB_PRICES.ceiling.light, note: ''
-            });
-        }
-        if (inputs.holes > 0) {
-            items.push({
-                cat: '木作工程', name: '燈具/維修孔開孔', qty: inputs.holes, unit: '個', 
-                price: DB_PRICES.ceiling.hole, total: inputs.holes * DB_PRICES.ceiling.hole, note: ''
-            });
-        }
-
-        // --- B. 櫃體計算 ---
-        // 判斷單價與加成
-        let isPremium = inputs.materialLevel === 'premium';
-        let basePrices = inputs.cabinetMethod === 'system' ? DB_PRICES.cabinet.system : DB_PRICES.cabinet.wood;
-        let multiplier = isPremium ? DB_PRICES.cabinet.premiumMultiplier : 1.0;
-        let drawerPrice = isPremium ? DB_PRICES.cabinet.drawer.premium : DB_PRICES.cabinet.drawer.normal;
-        let catName = inputs.cabinetMethod === 'system' ? '系統櫃工程' : '木作櫃體';
-        let matNote = isPremium ? '高級 (含緩衝/特殊板)' : '標準 (國產)';
-
-        // 計算實際單價 (四捨五入至十位)
-        let priceLow = Math.round((basePrices.low * multiplier) / 10) * 10;
-        let priceHigh = Math.round((basePrices.high * multiplier) / 10) * 10;
-
-        if (inputs.lowCabinet > 0) {
-            items.push({
-                cat: catName, name: '矮櫃 (H≤120cm)', qty: inputs.lowCabinet, unit: '尺', 
-                price: priceLow, total: inputs.lowCabinet * priceLow, note: matNote
-            });
-        }
-        if (inputs.highCabinet > 0) {
-            items.push({
-                cat: catName, name: '高櫃 (H>120cm)', qty: inputs.highCabinet, unit: '尺', 
-                price: priceHigh, total: inputs.highCabinet * priceHigh, note: matNote
-            });
-        }
-        if (inputs.drawers > 0) {
-            items.push({
-                cat: catName, name: '抽屜組', qty: inputs.drawers, unit: '組', 
-                price: drawerPrice, total: inputs.drawers * drawerPrice, note: isPremium ? '緩衝滑軌' : '一般滑軌'
-            });
-        }
-
-        // --- C. 隔間與雜項 ---
-        if (inputs.partitionArea > 0) {
-            items.push({
-                cat: '木作工程', name: '雙面隔間牆', qty: inputs.partitionArea, unit: '坪', 
-                price: DB_PRICES.partition, total: inputs.partitionArea * DB_PRICES.partition, note: '含骨架/封板'
-            });
-        }
-        if (inputs.demoArea > 0) {
-            items.push({
-                cat: '拆除工程', name: '舊裝潢拆除', qty: inputs.demoArea, unit: '坪', 
-                price: DB_PRICES.demo, total: inputs.demoArea * DB_PRICES.demo, note: '不含清運'
-            });
-        }
-        if (inputs.trashTrips > 0) {
-            items.push({
-                cat: '清潔工程', name: '廢棄物清運', qty: inputs.trashTrips, unit: '趟', 
-                price: DB_PRICES.trash, total: inputs.trashTrips * DB_PRICES.trash, note: '標準車次'
-            });
-        }
-
-        // 3. 渲染 HTML 表格
-        const tbody = document.querySelector('#quoteTable tbody');
-        tbody.innerHTML = '';
-        
-        let currentCat = '';
-        let subTotal = 0;
-
-        // 排序：確保相同工種在一起
-        items.sort((a, b) => a.cat.localeCompare(b.cat));
-
-        items.forEach((item, index) => {
-            // 檢查是否需要插入工種小計 (當工種改變 或 最後一項時)
-            if (currentCat !== '' && item.cat !== currentCat) {
-                 tbody.innerHTML += `
-                    <tr class="sub-total-row">
-                        <td colspan="5" style="text-align: right;">${currentCat} 小計</td>
-                        <td colspan="2">NT$ ${formatNumber(subTotal)}</td>
-                    </tr>
-                `;
-                subTotal = 0;
-            }
-
-            currentCat = item.cat;
-            subTotal += item.total;
-            totalAmount += item.total;
-
-            tbody.innerHTML += `
-                <tr>
-                    <td>${item.cat}</td>
-                    <td>${item.name}</td>
-                    <td>${item.qty}</td>
-                    <td>${item.unit}</td>
-                    <td>${formatNumber(item.price)}</td>
-                    <td>${formatNumber(item.total)}</td>
-                    <td>${item.note}</td>
-                </tr>
-            `;
-
-            // 處理最後一項的小計
-            if (index === items.length - 1) {
-                tbody.innerHTML += `
-                    <tr class="sub-total-row">
-                        <td colspan="5" style="text-align: right;">${currentCat} 小計</td>
-                        <td colspan="2">NT$ ${formatNumber(subTotal)}</td>
-                    </tr>
-                `;
-            }
-        });
-
-        // 總計行
-        let tax = Math.round(totalAmount * 0.05);
-        let grandTotal = totalAmount + tax;
-
-        tbody.innerHTML += `
-            <tr><td colspan="7" style="border:none; height:20px;"></td></tr>
-            <tr>
-                <td colspan="5" style="text-align: right;"><strong>合計 (未稅)</strong></td>
-                <td colspan="2"><strong>NT$ ${formatNumber(totalAmount)}</strong></td>
-            </tr>
-            <tr>
-                <td colspan="5" style="text-align: right;">營業稅 (5%)</td>
-                <td colspan="2">NT$ ${formatNumber(tax)}</td>
-            </tr>
-            <tr class="total-row">
-                <td colspan="5" style="text-align: right;">總計金額</td>
-                <td colspan="2">NT$ ${formatNumber(grandTotal)}</td>
-            </tr>
-        `;
-
-        // 顯示報價單區域
-        document.getElementById('quotationResult').style.display = 'block';
-        document.querySelector('.print-btn').style.display = 'block';
-        
-        // 填寫基本資料
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
-        document.getElementById('quoteId').innerText = 'Q-' + Date.now().toString().slice(-6);
-        
-        // 捲動到底部
-        document.getElementById('quotationResult').scrollIntoView({behavior: 'smooth'});
+    function format(n) {
+        return parseInt(n).toLocaleString('zh-TW');
     }
+
+    function generateInvoice() {
+        const client = document.getElementById('client').value || "(未填寫)";
+        const location = document.getElementById('location').value || "(未填寫)";
+        const total = document.getElementById('totalPrice').value || 0;
+        const ratio = document.getElementById('ratio').value;
+        const phaseSelect = document.getElementById('phase');
+        const phaseName = phaseSelect.options[phaseSelect.selectedIndex].text.split('：')[1].split(' (')[0];
+
+        const amount = Math.round(total * (ratio / 100));
+
+        // 填入資料
+        document.getElementById('outClient').innerText = client;
+        document.getElementById('outLoc').innerText = location;
+        document.getElementById('outDate').innerText = new Date().toLocaleDateString();
+        // 產生隨機編號：IV-日期-亂數
+        document.getElementById('outId').innerText = 'IV-' + new Date().toISOString().slice(2,10).replace(/-/g,"") + Math.floor(Math.random()*100);
+        
+        document.getElementById('outTotal').innerText = '$' + format(total);
+        document.getElementById('outPhaseName').innerText = phaseName;
+        document.getElementById('outRatio').innerText = ratio;
+        document.getElementById('outAmount').innerText = '$' + format(amount);
+
+        // 捲動到請款單位置 (手機上體驗較好)
+        document.getElementById('invoiceArea').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 初始化日期
+    document.getElementById('outDate').innerText = new Date().toLocaleDateString();
 </script>
 
 </body>
